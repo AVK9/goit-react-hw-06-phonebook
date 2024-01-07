@@ -2,17 +2,21 @@ import { useState } from 'react';
 import css from './ContactForm.module.css';
 import { Icon } from '../img/Icon';
 import { IMaskInput } from 'react-imask';
+import { useDispatch, useSelector } from 'react-redux';
+import { addContactAction } from 'store/contactListSlice/sliceContactList';
 
 export function ContactForm({ onSubmit }) {
-  const [name, setName] = useState('');
+  const [nameContact, setNameContact] = useState('');
   const [number, setNumber] = useState('');
+  const dispatch = useDispatch();
+  const { contacts } = useSelector(state => state.contacts);
 
   const handleChange = e => {
     const { name, value } = e.target;
 
     switch (name) {
       case 'name':
-        setName(value);
+        setNameContact(value);
         break;
       case 'number':
         setNumber(value);
@@ -24,15 +28,28 @@ export function ContactForm({ onSubmit }) {
 
   const handleSubmit = e => {
     e.preventDefault();
+    checkName(nameContact);
+  };
 
-    onSubmit({ name, number });
-    reset();
+  const checkName = nameContact => {
+    const { name } = contacts;
+    const findName = contact =>
+      contact.name.toLowerCase() === nameContact.toLowerCase();
+    if (contacts.length && contacts.some(findName)) {
+      return alert(`${name} is already in contacts`);
+      // toast.warn(`${name} is already in contacts.`)
+    } else {
+      dispatch(addContactAction({ name: nameContact, number }));
+      console.log('HELLO');
+      reset();
+    }
   };
 
   const reset = () => {
-    setName('');
+    setNameContact('');
     setNumber('');
   };
+
   return (
     <div>
       <form onSubmit={handleSubmit}>
@@ -44,7 +61,7 @@ export function ContactForm({ onSubmit }) {
             <input
               type="text"
               name="name"
-              value={name}
+              value={nameContact}
               onChange={handleChange}
               // pattern="^[a-zA-Zа-яА-Я]+(([' \-][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
               // placeholder="Ivan Bereza"
